@@ -1,4 +1,4 @@
-import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "./db/client";
 import { categories, providers, videoCategories, videos, type Video } from "./db/schema";
 
@@ -148,27 +148,44 @@ export async function getRelatedVideos(
   if (matchParts.length === 0) return [];
   conditions.push(sql`(${sql.join(matchParts, sql` or `)})`);
 
-  // Rank by relevance: same provider first, then shared-category count,
-  // then shared-tag count, then provider views.
-  return db
-    .select(cardColumns)
+  // Fetch a bounded candidate pool (indexed filters only), then rank in
+  // JS — correlated scoring in ORDER BY was too heavy on cold functions.
+  const candidates = await db
+    .select({ ...cardColumns, tags: videos.tags })
     .from(videos)
     .innerJoin(providers, eq(videos.providerId, providers.id))
     .where(and(...conditions))
-    .orderBy(
-      sql`(${videos.providerId} = ${video.providerId})::int desc`,
-      catIds.length > 0
-        ? sql`(select count(*) from ${videoCategories} vc2 join ${categories} c2 on c2.id = vc2.category_id where vc2.video_id = ${videos.id} and c2.slug in (${sql.join(catIds.map((s) => sql`${s}`), sql`, `)})) desc`
-        : sql`0`,
-      tagList.length > 0
-        ? sql`(select count(*) from unnest(${videos.tags}) t where t = any(array[${sql.join(
-            tagList.map((t) => sql`${t}`),
-            sql`, `
-          )}]::text[])) desc`
-        : sql`0`,
-      desc(videos.views)
-    )
-    .limit(limit);
+    .orderBy(desc(videos.views))
+    .limit(300);
+
+  const catSet = new Set(catIds);
+  const tagSet = new Set(tagList);
+  const catCount = new Map<string, number>();
+  if (catIds.length > 0) {
+    const vidIds = candidates.map((c) => c.id);
+    const links = await db
+      .select({ videoId: videoCategories.videoId, slug: categories.slug })
+      .from(videoCategories)
+      .innerJoin(categories, eq(videoCategories.categoryId, categories.id))
+      .where(inArray(videoCategories.videoId, vidIds));
+    for (const l of links) {
+      if (catSet.has(l.slug)) {
+        catCount.set(l.videoId, (catCount.get(l.videoId) ?? 0) + 1);
+      }
+    }
+  }
+
+  return candidates
+    .map((c) => ({
+      card: c,
+      score:
+        (c.providerId === video.providerId ? 1000 : 0) +
+        (catCount.get(c.id) ?? 0) * 10 +
+        c.tags.filter((t) => tagSet.has(t)).length,
+    }))
+    .sort((a, b) => b.score - a.score || (b.card.views ?? 0) - (a.card.views ?? 0))
+    .slice(0, limit)
+    .map(({ card: { tags: _tags, ...card } }) => card);
 }
 
 export async function listCategoriesWithCounts(): Promise<
