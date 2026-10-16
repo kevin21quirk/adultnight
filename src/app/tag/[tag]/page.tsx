@@ -3,7 +3,7 @@ import { VideoCard } from "@/components/video-card";
 import { Pagination } from "@/components/pagination";
 import { listVideos } from "@/lib/queries";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function TagPage({
   params,

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { VideoCard } from "@/components/video-card";
 import { listCategoriesWithCounts, listVideos } from "@/lib/queries";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [{ items, total }, cats] = await Promise.all([

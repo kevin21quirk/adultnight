@@ -5,7 +5,7 @@ import { EmbedPlayer } from "@/components/embed-player";
 import { VideoCard } from "@/components/video-card";
 import { getPublicVideo, getRelatedVideos, isUuid } from "@/lib/queries";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 function formatDuration(seconds: number | null): string | null {
   if (!seconds) return null;
