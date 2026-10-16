@@ -15,6 +15,7 @@ export function EmbedPlayer({
   sourceUrl,
   providerName,
   thumbnailUrl,
+  isVr,
 }: {
   providerSlug: string;
   embedUrl: string | null;
@@ -23,6 +24,7 @@ export function EmbedPlayer({
   sourceUrl: string | null;
   providerName: string;
   thumbnailUrl: string | null;
+  isVr?: boolean;
 }) {
   const adapter = getAdapter(providerSlug);
   const valid =
@@ -48,6 +50,7 @@ export function EmbedPlayer({
       providerName={providerName}
       thumbnailUrl={thumbnailUrl}
       title={title}
+      isVr={isVr}
     />
   );
 }

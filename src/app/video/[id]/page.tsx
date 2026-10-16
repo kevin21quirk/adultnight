@@ -48,6 +48,10 @@ export default async function VideoPage({
           sourceUrl={video.sourceUrl}
           providerName={video.providerName}
           thumbnailUrl={video.thumbnailUrl}
+          isVr={
+            video.categoryNames.some((c) => c.slug === "virtual-reality") ||
+            video.tags.some((t) => /virtual.?reality|^vr$/i.test(t))
+          }
         />
         <h1 className="mt-4 text-lg font-semibold leading-snug">{video.title}</h1>
 

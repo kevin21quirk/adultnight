@@ -16,27 +16,63 @@ export function PlayerGate({
   providerName,
   thumbnailUrl,
   title,
+  isVr,
 }: {
   embedUrl: string;
   sourceUrl: string | null;
   providerName: string;
   thumbnailUrl: string | null;
   title: string;
+  isVr?: boolean;
 }) {
   const [playing, setPlaying] = useState(false);
+  const [flat, setFlat] = useState(false);
 
   if (playing) {
     return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-        <iframe
-          src={embedUrl}
-          title={title}
-          className="absolute inset-0 h-full w-full"
-          frameBorder={0}
-          allowFullScreen
-          referrerPolicy="origin"
-          sandbox="allow-scripts allow-same-origin allow-presentation"
-        />
+      <div>
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+          <iframe
+            src={embedUrl}
+            title={title}
+            className="absolute inset-0 h-full w-full"
+            style={
+              flat
+                ? {
+                    // VR source is side-by-side stereo; zooming to the left
+                    // half shows one eye as a flat desktop view.
+                    width: "200%",
+                    height: "200%",
+                    transform: "translate(0, -25%)",
+                  }
+                : undefined
+            }
+            frameBorder={0}
+            allowFullScreen
+            referrerPolicy="origin"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+          />
+        </div>
+        {isVr && (
+          <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
+            <span className="font-medium">VR view:</span>
+            <button
+              onClick={() => setFlat(false)}
+              className={`rounded px-2.5 py-1 border ${!flat ? "border-accent-500 text-white" : "border-night-600 text-neutral-400"}`}
+            >
+              Side-by-side (headset)
+            </button>
+            <button
+              onClick={() => setFlat(true)}
+              className={`rounded px-2.5 py-1 border ${flat ? "border-accent-500 text-white" : "border-night-600 text-neutral-400"}`}
+            >
+              Flat (desktop)
+            </button>
+            <span className="text-neutral-600">
+              Full 3D requires a headset on the provider site.
+            </span>
+          </div>
+        )}
       </div>
     );
   }
