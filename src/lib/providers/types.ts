@@ -42,4 +42,12 @@ export interface ProviderAdapter {
   parseDumpRow(line: string): NormalizedVideoRecord | null;
   /** Parse one deletions-feed line, or null if invalid. */
   parseDeletedRow(line: string): DeletedRecord | null;
+  /**
+   * Probe whether a video still plays at the provider. Returns 'unknown'
+   * on network errors — never treat a failed check as removal.
+   */
+  checkAvailable(
+    videoId: string,
+    fetchImpl?: typeof fetch
+  ): Promise<"available" | "unavailable" | "unknown">;
 }

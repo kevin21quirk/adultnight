@@ -254,12 +254,19 @@ export async function revalidateVideoAction(formData: FormData) {
 
   const adapter = adapterForSourceUrl(video.sourceUrl ?? "") ??
     (video.embedUrl ? adapterForSourceUrl(video.embedUrl) : null);
-  const stillValid =
+  const formatValid =
     adapter &&
     adapter.validateVideoId(video.providerVideoId) &&
     (!video.embedUrl || adapter.validateEmbedUrl(video.embedUrl));
 
-  if (!stillValid) {
+  let outcome: string = "valid";
+  if (!formatValid || !adapter) {
+    outcome = "format_invalid";
+  } else {
+    outcome = await adapter.checkAvailable(video.providerVideoId);
+  }
+
+  if (outcome === "format_invalid" || outcome === "unavailable") {
     await db
       .update(videos)
       .set({ status: "unavailable", updatedAt: new Date() })
@@ -267,10 +274,11 @@ export async function revalidateVideoAction(formData: FormData) {
     await db.insert(moderationEvents).values({
       videoId: id,
       eventType: "revalidate_failed",
+      reason: outcome,
       actorId: actor,
     });
   }
-  await audit(actor, "video.revalidate", "video", id, { stillValid });
+  await audit(actor, "video.revalidate", "video", id, { outcome });
   revalidatePath("/admin/videos");
 }
 

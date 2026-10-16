@@ -51,6 +51,20 @@ accepts `/^(?:ph)?[0-9a-f]{10,24}$/i`.
 `{numericId},{viewkey},{view_video URL}` per line, no header. Cumulative —
 safe to reprocess; rows not present in our catalogue are skipped.
 
+## Known limitation: UK/regional embed gating
+
+The embed endpoint returns a generic "This video is unavailable" HTML page
+(HTTP 200, ~4.5 KB) to **all** requests from age-unverified UK visitors —
+including currently-live videos. This is provider-side OSA gating, not
+per-video removal. Consequences:
+
+- UK visitors must have completed Pornhub's own age verification for embeds
+  to play. Our age gate does not substitute for the provider's.
+- `checkAvailable` must never treat that page as proof of removal; only the
+  deletions feed is authoritative.
+- Consider evaluating the provider list for the target market: providers
+  without UK embed gating may be preferable for a UK audience.
+
 ## Sync strategy
 
 - **Initial**: stream the ZIP, inflate on the fly, bounded batches (500),

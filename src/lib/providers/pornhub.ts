@@ -168,4 +168,28 @@ export const pornhubAdapter: ProviderAdapter = {
     if (url && !isAllowedPageUrl(url)) return null;
     return { providerVideoId: viewkey };
   },
+
+  async checkAvailable(
+    videoId: string,
+    fetchImpl: typeof fetch = fetch
+  ): Promise<"available" | "unavailable" | "unknown"> {
+    if (!VIDEO_ID_RE.test(videoId)) return "unavailable";
+    try {
+      // Caution: the embed endpoint serves a "This video is unavailable"
+      // page to age-unverified visitors in restricted jurisdictions (e.g.
+      // UK under the OSA) even for live videos. That response is therefore
+      // NOT proof of removal — only the deletions feed is authoritative.
+      const res = await fetchImpl(pornhubAdapter.embedUrlFor(videoId), {
+        headers: { "user-agent": "av-discovery/0.1 (+embed-check)" },
+      });
+      if (!res.ok) return res.status === 404 ? "unavailable" : "unknown";
+      const body = await res.text();
+      if (/this video is unavailable|video has been (removed|disabled|flagged)/i.test(body)) {
+        return "unknown"; // could be regional/verification gating
+      }
+      return body.length > 20000 ? "available" : "unknown";
+    } catch {
+      return "unknown";
+    }
+  },
 };
