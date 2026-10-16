@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { VideoCard as VideoCardT } from "@/lib/queries";
+import { ThumbImage } from "./thumb-image";
 
 function formatDuration(seconds: number | null): string | null {
   if (!seconds) return null;
@@ -26,11 +27,8 @@ export function VideoCard({
     >
       <div className="relative aspect-video bg-night-700">
         {video.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ThumbImage
             src={`/api/thumb?u=${encodeURIComponent(video.thumbnailUrl)}`}
-            alt=""
-            loading="lazy"
             className="h-full w-full object-cover"
           />
         ) : (
