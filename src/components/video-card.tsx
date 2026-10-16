@@ -53,11 +53,11 @@ export function VideoCard({
         <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-accent-400">
           {video.title}
         </h3>
-        {video.views != null && (
-          <p className="mt-1 text-xs text-neutral-500">
-            {video.views.toLocaleString()} views on provider
-          </p>
-        )}
+        <p className="mt-1 text-xs text-neutral-500">
+          {video.providerName}
+          {video.views != null &&
+            ` · ${video.views.toLocaleString()} views on provider`}
+        </p>
       </div>
     </Link>
   );

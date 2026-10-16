@@ -21,7 +21,7 @@ export type VideoCard = Pick<
   | "providerVideoId"
   | "providerId"
   | "views"
->;
+> & { providerName: string };
 
 const cardColumns = {
   id: videos.id,
@@ -31,6 +31,7 @@ const cardColumns = {
   providerVideoId: videos.providerVideoId,
   providerId: videos.providerId,
   views: videos.views,
+  providerName: providers.name,
 } as const;
 
 const PUBLIC_STATUS = "approved" as const;
@@ -79,6 +80,7 @@ export async function listVideos(opts: {
   const items = await db
     .select(cardColumns)
     .from(videos)
+    .innerJoin(providers, eq(videos.providerId, providers.id))
     .where(where)
     .orderBy(...orderBy)
     .limit(PAGE_SIZE)
@@ -149,6 +151,7 @@ export async function getRelatedVideos(
   return db
     .select(cardColumns)
     .from(videos)
+    .innerJoin(providers, eq(videos.providerId, providers.id))
     .where(and(...conditions))
     .orderBy(desc(videos.importedAt))
     .limit(limit);

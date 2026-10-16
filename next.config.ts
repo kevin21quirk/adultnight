@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const frameHosts = [
   "https://www.pornhub.com",
   "https://pornhub.com",
+  "https://www.eporner.com",
+  "https://eporner.com",
 ];
 
 const securityHeaders = [

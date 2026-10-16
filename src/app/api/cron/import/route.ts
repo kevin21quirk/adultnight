@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { providers } from "@/lib/db/schema";
 import { runImport, type ImportSummary } from "@/lib/importer/run";
+import { getAdapter } from "@/lib/providers/registry";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -37,8 +38,11 @@ export async function GET(req: Request) {
     });
     results.push({ provider: p.slug, ...inc });
 
-    const del = await runImport({ providerSlug: p.slug, mode: "deletions" });
-    results.push({ provider: p.slug, ...del });
+    const adapter = getAdapter(p.slug);
+    if (adapter?.feeds.some((f) => f.role === "deletions")) {
+      const del = await runImport({ providerSlug: p.slug, mode: "deletions" });
+      results.push({ provider: p.slug, ...del });
+    }
   }
 
   return NextResponse.json({

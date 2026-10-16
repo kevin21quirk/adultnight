@@ -63,10 +63,44 @@ async function* zipEntryLines(
   yield* bytesToLines(inflated);
 }
 
+/**
+ * Yield one serialized JSON object per item from a paginated JSON API.
+ * The feed URL may contain `{page}`; iteration stops at total_pages or
+ * when a page returns no items.
+ */
+async function* jsonApiItems(
+  feed: FeedDescriptor,
+  fetchImpl: typeof fetch
+): AsyncGenerator<string> {
+  for (let page = 1; ; page++) {
+    const url = feed.url.replace("{page}", String(page));
+    const res = await fetchImpl(url);
+    if (!res.ok) {
+      throw new Error(`feed fetch failed: HTTP ${res.status} for ${url}`);
+    }
+    const data = (await res.json()) as {
+      videos?: unknown[];
+      total_pages?: number;
+    };
+    const items = Array.isArray(data.videos) ? data.videos : [];
+    for (const item of items) yield JSON.stringify(item);
+    if (
+      items.length === 0 ||
+      (typeof data.total_pages === "number" && page >= data.total_pages)
+    ) {
+      return;
+    }
+  }
+}
+
 export async function* streamFeedLines(
   feed: FeedDescriptor,
   fetchImpl: typeof fetch = fetch
 ): AsyncGenerator<string> {
+  if (feed.kind === "json_pages") {
+    yield* jsonApiItems(feed, fetchImpl);
+    return;
+  }
   const res = await fetchImpl(feed.url);
   if (!res.ok || !res.body) {
     throw new Error(`feed fetch failed: HTTP ${res.status} for ${feed.url}`);

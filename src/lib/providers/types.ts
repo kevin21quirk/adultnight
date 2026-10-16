@@ -17,7 +17,8 @@ export interface DeletedRecord {
 }
 
 export interface FeedDescriptor {
-  kind: "zip_csv" | "csv";
+  kind: "zip_csv" | "csv" | "json_pages";
+  /** For json_pages, may contain a `{page}` placeholder. */
   url: string;
   role: "catalogue" | "deletions";
 }
