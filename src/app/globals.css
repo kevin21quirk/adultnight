@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night-950: #0b0710;
+  --color-night-900: #140d1c;
+  --color-night-800: #1e1529;
+  --color-night-700: #2b1f3a;
+  --color-night-600: #3d2d52;
+  --color-accent-400: #c084fc;
+  --color-accent-500: #a855f7;
+  --color-accent-600: #9333ea;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-night-950);
+  color: #e9e2f2;
+}

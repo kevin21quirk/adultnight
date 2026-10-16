@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "import_runs_running_unique" ON "import_runs" ("provider_id") WHERE "status" = 'running';
