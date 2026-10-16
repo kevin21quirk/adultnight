@@ -30,6 +30,12 @@ export interface ImportOptions {
   lineSource?: (feed: FeedDescriptor) => AsyncGenerator<string>;
   /** Test hook: override the adapter looked up by slug. */
   adapterOverride?: ProviderAdapter;
+  /**
+   * Optional predicate applied to each parsed record before dedup/insert.
+   * Records it rejects are counted as skipped. Used for targeted imports
+   * (e.g. a VR-only catalogue scan).
+   */
+  recordFilter?: (rec: NormalizedVideoRecord) => boolean;
 }
 
 export interface ImportSummary {
@@ -359,6 +365,10 @@ async function processCatalogue(
     summary.recordsSeen++;
     const rec = adapter.parseDumpRow(line);
     if (!rec) {
+      summary.recordsSkipped++;
+      continue;
+    }
+    if (opts.recordFilter && !opts.recordFilter(rec)) {
       summary.recordsSkipped++;
       continue;
     }
