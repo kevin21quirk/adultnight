@@ -121,11 +121,11 @@ export async function getPublicVideo(id: string): Promise<PublicVideo | null> {
 
 export async function getRelatedVideos(
   video: PublicVideo,
-  limit = 8
+  limit = 12
 ): Promise<VideoCard[]> {
   const db = getDb();
   const catIds = video.categoryNames.map((c) => c.slug);
-  const tagList = video.tags;
+  const tagList = video.tags.slice(0, 20);
 
   const conditions: SQL[] = [
     eq(videos.status, PUBLIC_STATUS),
@@ -148,12 +148,26 @@ export async function getRelatedVideos(
   if (matchParts.length === 0) return [];
   conditions.push(sql`(${sql.join(matchParts, sql` or `)})`);
 
+  // Rank by relevance: same provider first, then shared-category count,
+  // then shared-tag count, then provider views.
   return db
     .select(cardColumns)
     .from(videos)
     .innerJoin(providers, eq(videos.providerId, providers.id))
     .where(and(...conditions))
-    .orderBy(desc(videos.importedAt))
+    .orderBy(
+      sql`(${videos.providerId} = ${video.providerId})::int desc`,
+      catIds.length > 0
+        ? sql`(select count(*) from ${videoCategories} vc2 join ${categories} c2 on c2.id = vc2.category_id where vc2.video_id = ${videos.id} and c2.slug in (${sql.join(catIds.map((s) => sql`${s}`), sql`, `)})) desc`
+        : sql`0`,
+      tagList.length > 0
+        ? sql`(select count(*) from unnest(${videos.tags}) t where t = any(array[${sql.join(
+            tagList.map((t) => sql`${t}`),
+            sql`, `
+          )}]::text[])) desc`
+        : sql`0`,
+      desc(videos.views)
+    )
     .limit(limit);
 }
 

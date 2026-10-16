@@ -38,8 +38,8 @@ export default async function VideoPage({
   const duration = formatDuration(video.durationSeconds);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div>
+    <div>
+      <div className="mx-auto max-w-5xl">
         <EmbedPlayer
           providerSlug={video.providerSlug}
           embedUrl={video.embedUrl}
@@ -112,20 +112,18 @@ export default async function VideoPage({
         </div>
       </div>
 
-      <aside>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-400">
-          Related videos
-        </h2>
+      <section className="mt-10">
+        <h2 className="mb-4 text-lg font-semibold">More like this</h2>
         {related.length === 0 ? (
           <p className="text-sm text-neutral-600">No related videos yet.</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {related.map((v) => (
               <VideoCard key={v.id} video={v} />
             ))}
           </div>
         )}
-      </aside>
+      </section>
     </div>
   );
 }
