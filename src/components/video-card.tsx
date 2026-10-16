@@ -11,7 +11,13 @@ function formatDuration(seconds: number | null): string | null {
     : `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function VideoCard({ video }: { video: VideoCardT }) {
+export function VideoCard({
+  video,
+  badge,
+}: {
+  video: VideoCardT;
+  badge?: string;
+}) {
   const duration = formatDuration(video.durationSeconds);
   return (
     <Link
@@ -31,6 +37,11 @@ export function VideoCard({ video }: { video: VideoCardT }) {
           <div className="h-full w-full flex items-center justify-center text-neutral-600 text-xs">
             No preview
           </div>
+        )}
+        {badge && (
+          <span className="absolute left-1.5 top-1.5 rounded bg-accent-600/90 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+            {badge}
+          </span>
         )}
         {duration && (
           <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[11px] font-medium text-white">

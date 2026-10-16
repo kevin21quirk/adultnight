@@ -29,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </form>
             <nav className="hidden sm:flex gap-4 text-sm text-neutral-400">
               <Link href="/search" className="hover:text-white">Browse</Link>
+              <Link href="/category/virtual-reality" className="font-medium text-accent-400 hover:text-accent-300">VR</Link>
               <Link href="/legal/content-removal" className="hover:text-white">Content removal</Link>
             </nav>
           </div>

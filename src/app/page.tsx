@@ -5,10 +5,12 @@ import { listCategoriesWithCounts, listVideos } from "@/lib/queries";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [{ items, total }, cats] = await Promise.all([
+  const [{ items, total }, cats, vr] = await Promise.all([
     listVideos({ page: 1 }),
     listCategoriesWithCounts(),
+    listVideos({ page: 1, categorySlug: "virtual-reality", sort: "views" }),
   ]);
+  const vrItems = vr.items.slice(0, 8);
 
   return (
     <div>
@@ -24,6 +26,30 @@ export default async function HomePage() {
               >
                 {c.name} <span className="text-neutral-500">{c.count}</span>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {vrItems.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-lg font-semibold">
+              VR videos{" "}
+              <span className="text-sm font-normal text-neutral-500">
+                {vr.total.toLocaleString()}
+              </span>
+            </h2>
+            <Link
+              href="/category/virtual-reality"
+              className="text-sm text-accent-400 hover:text-accent-300"
+            >
+              See all VR →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {vrItems.map((v) => (
+              <VideoCard key={v.id} video={v} badge="VR" />
             ))}
           </div>
         </section>
