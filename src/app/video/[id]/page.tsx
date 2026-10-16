@@ -45,6 +45,9 @@ export default async function VideoPage({
           embedUrl={video.embedUrl}
           providerVideoId={video.providerVideoId}
           title={video.title}
+          sourceUrl={video.sourceUrl}
+          providerName={video.providerName}
+          thumbnailUrl={video.thumbnailUrl}
         />
         <h1 className="mt-4 text-lg font-semibold leading-snug">{video.title}</h1>
 

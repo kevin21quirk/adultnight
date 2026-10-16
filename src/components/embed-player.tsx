@@ -1,20 +1,28 @@
 import { getAdapter } from "@/lib/providers/registry";
+import { PlayerGate } from "./player-gate";
 
 /**
- * Renders a provider-authorised embed. The stored embed_url is re-validated
- * against the provider's hostname allowlist at render time — database content
- * is never trusted as an iframe source.
+ * Renders a provider-authorised embed behind a provider-verification gate.
+ * The stored embed_url is re-validated against the provider's hostname
+ * allowlist at render time — database content is never trusted as an
+ * iframe source.
  */
 export function EmbedPlayer({
   providerSlug,
   embedUrl,
   providerVideoId,
   title,
+  sourceUrl,
+  providerName,
+  thumbnailUrl,
 }: {
   providerSlug: string;
   embedUrl: string | null;
   providerVideoId: string;
   title: string;
+  sourceUrl: string | null;
+  providerName: string;
+  thumbnailUrl: string | null;
 }) {
   const adapter = getAdapter(providerSlug);
   const valid =
@@ -34,16 +42,12 @@ export function EmbedPlayer({
   }
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-      <iframe
-        src={valid}
-        title={title}
-        className="absolute inset-0 h-full w-full"
-        frameBorder={0}
-        allowFullScreen
-        referrerPolicy="origin"
-        sandbox="allow-scripts allow-same-origin allow-presentation"
-      />
-    </div>
+    <PlayerGate
+      embedUrl={valid}
+      sourceUrl={sourceUrl}
+      providerName={providerName}
+      thumbnailUrl={thumbnailUrl}
+      title={title}
+    />
   );
 }
