@@ -26,7 +26,7 @@ export function PlayerGate({
   isVr?: boolean;
 }) {
   const [playing, setPlaying] = useState(false);
-  const [flat, setFlat] = useState(false);
+  const [flat, setFlat] = useState(true); // flat mono is the sane desktop default
 
   if (playing) {
     return (
