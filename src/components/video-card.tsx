@@ -28,7 +28,7 @@ export function VideoCard({
         {video.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={video.thumbnailUrl}
+            src={`/api/thumb?u=${encodeURIComponent(video.thumbnailUrl)}`}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover"

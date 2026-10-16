@@ -46,7 +46,7 @@ export function PlayerGate({
       {thumbnailUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={thumbnailUrl}
+          src={`/api/thumb?u=${encodeURIComponent(thumbnailUrl)}`}
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-30"
         />
