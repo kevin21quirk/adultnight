@@ -1,14 +1,23 @@
 import Link from "next/link";
 import { VideoCard } from "@/components/video-card";
+import { Pagination } from "@/components/pagination";
 import { listCategoriesWithCounts, listVideos } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const [{ items, total }, cats, vr] = await Promise.all([
-    listVideos({ page: 1 }),
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
+  const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
+  const [{ items, total, totalPages }, cats, vr] = await Promise.all([
+    listVideos({ page: pageNum }),
     listCategoriesWithCounts(),
-    listVideos({ page: 1, categorySlug: "virtual-reality", sort: "views" }),
+    pageNum === 1
+      ? listVideos({ page: 1, categorySlug: "virtual-reality", sort: "views" })
+      : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 24, totalPages: 1 }),
   ]);
   const vrItems = vr.items.slice(0, 8);
 
@@ -73,6 +82,7 @@ export default async function HomePage() {
               <VideoCard key={v.id} video={v} />
             ))}
           </div>
+          <Pagination page={pageNum} totalPages={totalPages} basePath="/" />
         </>
       )}
     </div>
