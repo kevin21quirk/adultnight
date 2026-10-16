@@ -348,10 +348,13 @@ async function processCatalogue(
               if (cid) links.push({ videoId: vid, categoryId: cid });
             }
           }
-          if (links.length > 0) {
+          // Chunk the links insert — a 500-record batch can produce
+          // ~10k links, and a single oversized INSERT exceeds the Neon
+          // HTTP driver's payload limit.
+          for (let i = 0; i < links.length; i += 2000) {
             await tx
               .insert(videoCategories)
-              .values(links)
+              .values(links.slice(i, i + 2000))
               .onConflictDoNothing();
           }
         }
