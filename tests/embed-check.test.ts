@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { pornhubAdapter } from "@/lib/providers/pornhub";
-import { GET, _resetEmbedCheckCache } from "@/app/api/embed-check/route";
+import { GET } from "@/app/api/embed-check/route";
+import { _resetEmbedCheckCache } from "@/lib/embed-check";
 import { _resetRateLimits } from "@/lib/security/rate-limit";
 
 const VID = "a1b2c3d4e5f6a7b8c9d0";
