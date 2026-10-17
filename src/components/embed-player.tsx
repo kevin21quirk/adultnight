@@ -48,6 +48,8 @@ export function EmbedPlayer({
       embedUrl={valid}
       sourceUrl={sourceUrl}
       providerName={providerName}
+      providerSlug={providerSlug}
+      providerVideoId={providerVideoId}
       thumbnailUrl={thumbnailUrl}
       title={title}
       isVr={isVr}

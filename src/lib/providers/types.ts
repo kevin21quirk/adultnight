@@ -51,4 +51,15 @@ export interface ProviderAdapter {
     videoId: string,
     fetchImpl?: typeof fetch
   ): Promise<"available" | "unavailable" | "unknown">;
+  /**
+   * Probe whether the provider serves a playable embed to a request with NO
+   * user session — i.e. whether anonymous viewers hit an age-verification
+   * gate instead of the player. This reflects the server's egress region,
+   * not the end user's verification state. Optional: providers without
+   * embed gating may omit it and callers should treat that as 'unknown'.
+   */
+  probeEmbedGate?(
+    videoId: string,
+    fetchImpl?: typeof fetch
+  ): Promise<"gated" | "playable" | "unknown">;
 }

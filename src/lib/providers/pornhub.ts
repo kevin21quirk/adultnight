@@ -192,4 +192,26 @@ export const pornhubAdapter: ProviderAdapter = {
       return "unknown";
     }
   },
+
+  async probeEmbedGate(
+    videoId: string,
+    fetchImpl: typeof fetch = fetch
+  ): Promise<"gated" | "playable" | "unknown"> {
+    if (!VIDEO_ID_RE.test(videoId)) return "unknown";
+    try {
+      const res = await fetchImpl(pornhubAdapter.embedUrlFor(videoId), {
+        headers: { "user-agent": "av-discovery/0.1 (+embed-gate-probe)" },
+      });
+      if (!res.ok) return "unknown";
+      const body = await res.text();
+      // Age-unverified visitors get a bare stub page ("This video is
+      // unavailable", ~4.5 KB) instead of the player document.
+      if (/this video is unavailable|verify your age|age.?verification/i.test(body)) {
+        return "gated";
+      }
+      return body.length > 20000 ? "playable" : "gated";
+    } catch {
+      return "unknown";
+    }
+  },
 };
