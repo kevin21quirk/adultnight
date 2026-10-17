@@ -273,10 +273,14 @@ async function processCatalogue(
     if (!summary.dryRun) {
       const now = new Date();
       await db.transaction(async (tx) => {
-        await tx
-          .insert(videos)
-          .values(
-            batch.map((r) => ({
+        // Chunk the insert — a full batch produces a statement too large
+        // for the Neon HTTP driver's payload limit.
+        for (let i = 0; i < batch.length; i += 100) {
+          const chunk = batch.slice(i, i + 100);
+          await tx
+            .insert(videos)
+            .values(
+              chunk.map((r) => ({
               providerId,
               providerVideoId: r.providerVideoId,
               title: r.title,
@@ -307,6 +311,7 @@ async function processCatalogue(
               updatedAt: now,
             },
           });
+        }
 
         // Category links
         const catNames = new Set<string>();
