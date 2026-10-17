@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { EmbedPlayer } from "@/components/embed-player";
 import { VideoCard } from "@/components/video-card";
 import { getPublicVideo, getRelatedVideos, isUuid } from "@/lib/queries";
+import { inferVrMode, isVrVideo } from "@/lib/vr";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function VideoPage({
     <div>
       <div className="mx-auto max-w-5xl">
         <EmbedPlayer
+          videoId={video.id}
           providerSlug={video.providerSlug}
           embedUrl={video.embedUrl}
           providerVideoId={video.providerVideoId}
@@ -48,10 +50,12 @@ export default async function VideoPage({
           sourceUrl={video.sourceUrl}
           providerName={video.providerName}
           thumbnailUrl={video.thumbnailUrl}
-          isVr={
-            video.categoryNames.some((c) => c.slug === "virtual-reality") ||
-            video.tags.some((t) => /virtual.?reality|^vr$/i.test(t))
-          }
+          isVr={isVrVideo(
+            video.categoryNames.map((c) => c.slug),
+            video.tags
+          )}
+          mediaUrl={video.mediaUrl}
+          vrMode={inferVrMode(video.vrMode, video.title, video.tags)}
         />
         <h1 className="mt-4 text-lg font-semibold leading-snug">{video.title}</h1>
 

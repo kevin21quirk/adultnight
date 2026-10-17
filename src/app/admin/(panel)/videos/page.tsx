@@ -5,6 +5,7 @@ import {
   addManualVideoAction,
   moderateVideoAction,
   revalidateVideoAction,
+  setVideoMediaAction,
 } from "../../actions";
 import { z } from "zod";
 
@@ -96,6 +97,20 @@ export default async function AdminVideosPage({
             placeholder="Title"
             className="min-w-0 flex-1 rounded-md bg-night-800 border border-night-600 px-3 py-1.5 text-sm"
           />
+          <input
+            name="mediaUrl"
+            placeholder="Direct media URL (optional, https)"
+            className="min-w-0 flex-1 rounded-md bg-night-800 border border-night-600 px-3 py-1.5 text-sm"
+          />
+          <select
+            name="vrMode"
+            className="rounded-md bg-night-800 border border-night-600 px-3 py-1.5 text-sm"
+          >
+            <option value="">Not VR</option>
+            <option value="sbs180">VR 180° side-by-side</option>
+            <option value="sbs360">VR 360° side-by-side</option>
+            <option value="mono360">VR 360° mono</option>
+          </select>
           <button className="rounded-md bg-accent-600 px-4 py-1.5 text-sm font-medium hover:bg-accent-500">
             Add (pending review)
           </button>
@@ -114,7 +129,33 @@ export default async function AdminVideosPage({
                 <p className="mt-1 text-xs text-neutral-500">
                   {providerName} · {video.providerVideoId} ·{" "}
                   <span className={statusColor[video.status]}>{video.status}</span>
+                  {video.mediaUrl && (
+                    <>
+                      {" "}· <span className="text-accent-300">VR media: {video.vrMode ?? "sbs180"}</span>
+                    </>
+                  )}
                 </p>
+                <form action={setVideoMediaAction} className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <input type="hidden" name="videoId" value={video.id} />
+                  <input
+                    name="mediaUrl"
+                    defaultValue={video.mediaUrl ?? ""}
+                    placeholder="Direct media URL (https), blank clears"
+                    className="min-w-0 flex-1 rounded border border-night-600 bg-night-800 px-2 py-1 text-xs"
+                  />
+                  <select
+                    name="vrMode"
+                    defaultValue={video.vrMode ?? "sbs180"}
+                    className="rounded border border-night-600 bg-night-800 px-1.5 py-1 text-xs"
+                  >
+                    <option value="sbs180">180° SBS</option>
+                    <option value="sbs360">360° SBS</option>
+                    <option value="mono360">360° mono</option>
+                  </select>
+                  <button className="rounded border border-night-600 px-2.5 py-1 text-xs hover:border-accent-500">
+                    Set media
+                  </button>
+                </form>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {video.status !== "approved" && (

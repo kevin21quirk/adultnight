@@ -201,10 +201,20 @@ export async function resolveTakedownAction(formData: FormData) {
   revalidatePath("/admin/moderation");
 }
 
+const mediaUrlSchema = z
+  .string()
+  .url()
+  .max(2000)
+  .refine((u) => u.startsWith("https://"), "Media URL must be https")
+  .nullable();
+const vrModeSchema = z.enum(["mono360", "sbs180", "sbs360"]).nullable();
+
 export async function addManualVideoAction(formData: FormData) {
   const actor = await requireAdmin();
   const url = z.string().url().max(2000).parse(formData.get("url"));
   const title = z.string().min(1).max(300).parse(formData.get("title"));
+  const mediaUrl = mediaUrlSchema.parse(formData.get("mediaUrl") || null);
+  const vrMode = vrModeSchema.parse(formData.get("vrMode") || null);
 
   const adapter = adapterForSourceUrl(url);
   if (!adapter) {
@@ -226,12 +236,21 @@ export async function addManualVideoAction(formData: FormData) {
       title,
       embedUrl,
       sourceUrl: adapter.sourceUrlFor(videoId),
+      mediaUrl,
+      vrMode,
       status: "pending_review",
       tags: [],
     })
     .onConflictDoUpdate({
       target: [videos.providerId, videos.providerVideoId],
-      set: { title, embedUrl, sourceUrl: adapter.sourceUrlFor(videoId), updatedAt: new Date() },
+      set: {
+        title,
+        embedUrl,
+        sourceUrl: adapter.sourceUrlFor(videoId),
+        mediaUrl,
+        vrMode,
+        updatedAt: new Date(),
+      },
     })
     .returning({ id: videos.id });
 
@@ -242,6 +261,26 @@ export async function addManualVideoAction(formData: FormData) {
     actorId: actor,
   });
   await audit(actor, "video.manual_add", "video", row.id, { url });
+  revalidatePath("/admin/videos");
+}
+
+/**
+ * Attach (or clear) an authorized direct media file on an existing video.
+ * When set on a VR-flagged video, the public player switches to the
+ * interactive WebGL sphere player via /api/vr-stream.
+ */
+export async function setVideoMediaAction(formData: FormData) {
+  const actor = await requireAdmin();
+  const id = z.string().uuid().parse(formData.get("videoId"));
+  const mediaUrl = mediaUrlSchema.parse(formData.get("mediaUrl") || null);
+  const vrMode = vrModeSchema.parse(formData.get("vrMode") || null);
+
+  const db = getDb();
+  await db
+    .update(videos)
+    .set({ mediaUrl, vrMode: mediaUrl ? vrMode : null, updatedAt: new Date() })
+    .where(eq(videos.id, id));
+  await audit(actor, "video.set_media", "video", id, { mediaUrl, vrMode });
   revalidatePath("/admin/videos");
 }
 

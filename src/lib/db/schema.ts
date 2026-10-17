@@ -70,6 +70,11 @@ export const videos = pgTable(
     thumbnailUrl: text("thumbnail_url"),
     embedUrl: text("embed_url"),
     sourceUrl: text("source_url"),
+    /** Optional direct media file (mp4) — self-hosted or otherwise
+     *  authorized; enables the interactive WebGL VR player. */
+    mediaUrl: text("media_url"),
+    /** Projection for mediaUrl: mono360 | sbs180 | sbs360. */
+    vrMode: varchar("vr_mode", { length: 20 }),
     durationSeconds: integer("duration_seconds"),
     views: bigint("views", { mode: "number" }),
     tags: text("tags").array().notNull().default([]),
