@@ -46,6 +46,23 @@ async function main() {
     .returning();
   console.log("provider:", provider.slug, provider.id);
 
+  const [vrbone] = await db
+    .insert(providers)
+    .values({
+      name: "VRBone",
+      slug: "vrbone",
+      integrationType: "sitemap_scrape",
+      enabled: true,
+      allowedHosts: ["vrbone.com", "www.vrbone.com", "vrbone.b-cdn.net"],
+      operationalStatus: "seeded",
+    })
+    .onConflictDoUpdate({
+      target: providers.slug,
+      set: { updatedAt: new Date() },
+    })
+    .returning();
+  console.log("provider:", vrbone.slug, vrbone.id);
+
   // Admin user from env
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;

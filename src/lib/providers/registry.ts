@@ -1,10 +1,12 @@
 import type { ProviderAdapter } from "./types";
 import { pornhubAdapter } from "./pornhub";
 import { epornerAdapter } from "./eporner";
+import { vrboneAdapter } from "./vrbone";
 
 const adapters: Record<string, ProviderAdapter> = {
   [pornhubAdapter.slug]: pornhubAdapter,
   [epornerAdapter.slug]: epornerAdapter,
+  [vrboneAdapter.slug]: vrboneAdapter,
 };
 
 export function getAdapter(slug: string): ProviderAdapter | null {

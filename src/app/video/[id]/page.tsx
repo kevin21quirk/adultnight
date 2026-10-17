@@ -50,10 +50,12 @@ export default async function VideoPage({
           sourceUrl={video.sourceUrl}
           providerName={video.providerName}
           thumbnailUrl={video.thumbnailUrl}
-          isVr={isVrVideo(
-            video.categoryNames.map((c) => c.slug),
-            video.tags
-          )}
+          isVr={
+            isVrVideo(
+              video.categoryNames.map((c) => c.slug),
+              video.tags
+            ) || !!video.vrMode
+          }
           mediaUrl={video.mediaUrl}
           vrMode={inferVrMode(video.vrMode, video.title, video.tags)}
         />

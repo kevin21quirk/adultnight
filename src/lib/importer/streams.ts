@@ -93,12 +93,66 @@ async function* jsonApiItems(
   }
 }
 
+const XML_LOC_RE = /<loc>([^<]+)<\/loc>/g;
+const PAGE_FETCH_DELAY_MS = 150;
+const PAGE_TIMEOUT_MS = 20000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchText(url: string, fetchImpl: typeof fetch): Promise<string> {
+  const res = await fetchImpl(url, {
+    headers: { "user-agent": "av-discovery/0.1 (+catalogue-importer)" },
+    signal: AbortSignal.timeout(PAGE_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`feed fetch failed: HTTP ${res.status} for ${url}`);
+  return res.text();
+}
+
+/**
+ * Yield each video page's full HTML from a sitemap index.
+ * feed.url points at a <sitemapindex>; child sitemaps whose loc matches
+ * /sitemaps/videos are walked in order. One yield per fetched page — the
+ * downstream maxRows bound therefore also bounds page requests.
+ */
+async function* sitemapHtmlPages(
+  feed: FeedDescriptor,
+  fetchImpl: typeof fetch
+): AsyncGenerator<string> {
+  const index = await fetchText(feed.url, fetchImpl);
+  const childMaps: string[] = [];
+  for (const m of index.matchAll(XML_LOC_RE)) {
+    if (m[1].includes("/sitemaps/videos")) childMaps.push(m[1]);
+  }
+
+  const seen = new Set<string>();
+  const pageUrls: string[] = [];
+  for (const mapUrl of childMaps) {
+    const xml = await fetchText(mapUrl, fetchImpl);
+    for (const m of xml.matchAll(XML_LOC_RE)) {
+      const u = m[1];
+      if (!seen.has(u)) {
+        seen.add(u);
+        pageUrls.push(u);
+      }
+    }
+  }
+
+  for (const url of pageUrls) {
+    await sleep(PAGE_FETCH_DELAY_MS);
+    yield await fetchText(url, fetchImpl);
+  }
+}
+
 export async function* streamFeedLines(
   feed: FeedDescriptor,
   fetchImpl: typeof fetch = fetch
 ): AsyncGenerator<string> {
   if (feed.kind === "json_pages") {
     yield* jsonApiItems(feed, fetchImpl);
+    return;
+  }
+  if (feed.kind === "sitemap_html") {
+    yield* sitemapHtmlPages(feed, fetchImpl);
     return;
   }
   const res = await fetchImpl(feed.url);

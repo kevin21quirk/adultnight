@@ -3,13 +3,21 @@ export interface NormalizedVideoRecord {
   title: string;
   description: string | null;
   thumbnailUrl: string | null;
-  embedUrl: string;
+  embedUrl: string | null;
   sourceUrl: string | null;
   durationSeconds: number | null;
   views: number | null;
   tags: string[];
   categories: string[];
   publishedAt: Date | null;
+  /**
+   * Optional direct media file URL the provider publicly serves (e.g. a
+   * tube's own player endpoint). Drives the interactive VR player via
+   * /api/vr-stream. Never set scraped/paywalled URLs here.
+   */
+  mediaUrl?: string | null;
+  /** Projection for mediaUrl: mono360 | sbs180 | sbs360. */
+  vrMode?: string | null;
 }
 
 export interface DeletedRecord {
@@ -17,7 +25,7 @@ export interface DeletedRecord {
 }
 
 export interface FeedDescriptor {
-  kind: "zip_csv" | "csv" | "json_pages";
+  kind: "zip_csv" | "csv" | "json_pages" | "sitemap_html";
   /** For json_pages, may contain a `{page}` placeholder. */
   url: string;
   role: "catalogue" | "deletions";
