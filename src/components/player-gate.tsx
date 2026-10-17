@@ -37,7 +37,7 @@ export function PlayerGate({
             title={title}
             className="absolute inset-0 h-full w-full"
             style={
-              flat
+              flat && isVr
                 ? {
                     // VR source is side-by-side stereo; zooming to the left
                     // half shows one eye as a flat desktop view.
