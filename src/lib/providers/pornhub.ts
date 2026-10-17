@@ -201,6 +201,8 @@ export const pornhubAdapter: ProviderAdapter = {
     try {
       const res = await fetchImpl(pornhubAdapter.embedUrlFor(videoId), {
         headers: { "user-agent": "av-discovery/0.1 (+embed-gate-probe)" },
+        // Provider may be unreachable (ISP/router filtering) — don't hang.
+        signal: AbortSignal.timeout(8000),
       });
       if (!res.ok) return "unknown";
       const body = await res.text();
